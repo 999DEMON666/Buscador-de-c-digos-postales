@@ -166,101 +166,123 @@
         // ... (resto de la base de datos)
     };
     
+    /**
+     * Función para el botón del buscador manual.
+     */
+    function buscarManualmente() {
+        const manualInput = document.getElementById('manualCodeInput');
+        // Usamos .trim() para limpiar espacios en blanco
+        const codigo = manualInput.value.trim();
+        realizarBusquedaYMostrarResultado(codigo);
+    }
 
-        /**
-         * Función para el botón del buscador manual.
-         */
-        function buscarManualmente() {
-            const manualInput = document.getElementById('manualCodeInput');
-            // Usamos .trim() para limpiar espacios en blanco
-            const codigo = manualInput.value.trim();
-            realizarBusquedaYMostrarResultado(codigo);
+    /**
+     * Función central que busca un código y muestra el resultado.
+     * Es llamada tanto por el escáner QR como por el buscador manual.
+     * @param {string} codigo - El código postal a buscar.
+     */
+    function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
+
+        // Limpiar mensajes y resultados anteriores
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = '';
+
+        if (!codigo) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
+            return;
         }
 
-        /**
-         * Función central que busca un código y muestra el resultado.
-         * Es llamada tanto por el escáner QR como por el buscador manual.
-         * @param {string} codigo - El código postal a buscar.
-         */
-        function realizarBusquedaYMostrarResultado(codigo) {
-            const elementoResultado = document.getElementById('resultado');
-            const elementoMensajes = document.getElementById('mensajes');
-
-            // Limpiar mensajes y resultados anteriores
-            elementoResultado.innerHTML = '';
-            elementoMensajes.innerHTML = '';
-
-            if (!codigo) {
-                elementoMensajes.innerText = 'Por favor, ingresa o escanea un código.';
-                return;
-            }
-
-            let lugarEncontrado = null;
-            // Bucle para encontrar a qué lugar pertenece el código
-            for (const lugar in lugaresConCodigos) {
-                if (lugaresConCodigos[lugar].includes(codigo)) {
-                    lugarEncontrado = lugar;
-                    break; // Si lo encontramos, detenemos la búsqueda
-                }
-            }
-
-            // Mostrar el resultado
-            if (lugarEncontrado) {
-                elementoMensajes.innerText = `Código ${codigo} encontrado:`;
-                elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
-            } else {
-                elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        let lugarEncontrado = null;
+        // Bucle para encontrar a qué lugar pertenece el código
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break; // Si lo encontramos, detenemos la búsqueda
             }
         }
 
-        // --- LÓGICA DEL ESCÁNER QR ---
+        // Mostrar el resultado
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        }
+    }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            let codigoPostal = '';
-            
-            try {
-                // Intenta procesarlo como JSON (formato esperado)
-                const datosQR = JSON.parse(decodedText);
-                const carrierData = datosQR.carrier_data || '';
-                const partes = carrierData.split('|');
+    /**
+     * Extrae el código postal de diferentes formatos de texto de QR.
+     * @param {string} textoQR - El contenido decodificado del QR.
+     * @returns {string|null} El código postal extraído o null si no se encuentra.
+     */
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+
+        // 1. Intenta procesar como JSON (tu lógica original)
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR.carrier_data && datosQR.carrier_data.includes('|')) {
+                const partes = datosQR.carrier_data.split('|');
                 if (partes.length > 2) {
-                    codigoPostal = partes[2].trim();
+                    return partes[2].trim();
                 }
-            } catch (error) {
-                // Si no es JSON, asume que el texto del QR es el código postal directamente.
-                codigoPostal = decodedText.trim();
             }
-            
-            realizarBusquedaYMostrarResultado(codigoPostal);
-            
-            // Opcional: Pausar el escáner después de una lectura exitosa
-            // html5QrcodeScanner.pause(true);
+        } catch (e) {
+            // No es un JSON, continuamos con los otros métodos.
         }
 
-        function onScanFailure(error) {
-            // No hacemos nada en caso de fallo para no molestar al usuario.
+        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|');
+            // Devuelve el último elemento, que suele ser el código postal.
+            return partes[partes.length - 1].trim();
         }
 
-        // Variable global para el escáner para poder acceder a ella después
-        let html5QrcodeScanner;
+        // 3. Si nada de lo anterior funciona, devuelve el texto completo.
+        return textoQR.trim();
+    }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const elementoMensajes = document.getElementById('mensajes');
-            
-            if (typeof Html5QrcodeScanner !== "undefined") {
-                html5QrcodeScanner = new Html5QrcodeScanner(
-                    "qr-reader", 
-                    { 
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 }
-                    },
-                    false
-                );
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-            } else {
-                 elementoMensajes.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
-            }
-        });
-    </script>
+
+    // --- LÓGICA DEL ESCÁNER QR ---
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Usamos la nueva función unificada para extraer el código
+        const codigoPostal = obtenerCodigoDesdeQR(decodedText);
+        
+        // Llamamos a la función de búsqueda con el código extraído
+        realizarBusquedaYMostrarResultado(codigoPostal);
+        
+        // Opcional: Pausar el escáner después de una lectura exitosa
+        // html5QrcodeScanner.pause(true);
+    }
+
+    function onScanFailure(error) {
+        // No hacemos nada en caso de fallo para no molestar al usuario.
+        // console.warn(`Scan failure: ${error}`);
+    }
+
+    // Variable global para el escáner
+    let html5QrcodeScanner;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const elementoMensajes = document.getElementById('mensajes');
+        
+        if (typeof Html5QrcodeScanner !== "undefined") {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader", 
+                { 
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                false // Verbose
+            );
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        } else {
+             elementoMensajes.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
+        }
+    });
+</script>
 </body>
 </html>
