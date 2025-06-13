@@ -347,6 +347,65 @@
         // También cambiamos el tipo de input a texto para que la búsqueda manual funcione con nombres
         document.getElementById('manualCodeInput').value = codigoPostal; 
 <script>
+  function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
+
+        // Limpiar mensajes y resultados anteriores
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = '';
+
+        if (!codigo) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
+            return;
+        }
+
+        let lugarEncontrado = null;
+        // Bucle para encontrar a qué lugar pertenece el código
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break; // Si lo encontramos, detenemos la búsqueda
+            }
+        }
+
+        // Mostrar el resultado
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        }
+    }
+
+    /**
+     * Extrae el código postal de diferentes formatos de texto de QR.
+     * @param {string} textoQR - El contenido decodificado del QR.
+     * @returns {string|null} El código postal extraído o null si no se encuentra.
+     */
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+
+        // 1. Intenta procesar como JSON (tu lógica original)
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR.carrier_data && datosQR.carrier_data.includes('|')) {
+                const partes = datosQR.carrier_data.split('|');
+                if (partes.length > 2) {
+                    return partes[2].trim();
+                }
+            }
+        } catch (e) {
+            // No es un JSON, continuamos con los otros métodos.
+        }
+
+        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|');
+            // Devuelve el último elemento, que suele ser el código postal.
+            return partes[partes.length - 1].trim();
+        }
+<script>
     // TU BASE DE DATOS COMPLETA (se mantiene igual)
     const lugaresConCodigos = { "aquí están todos los códigos postales NO HACE FALTA QUE LOS PONGAS" };
     
@@ -492,14 +551,6 @@
             }
         } catch (e) {
             // No es un JSON, continuamos con los otros métodos.
-        }
-
-        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
-        if (textoQR.includes('|')) {
-            const partes = textoQR.split('|');
-            // Devuelve el último elemento, que suele ser el código postal.
-            return partes[partes.length - 1].trim();
-        }
 <script>
     // TU BASE DE DATOS COMPLETA (se mantiene igual)
     const lugaresConCodigos = { "aquí están todos los códigos postales NO HACE FALTA QUE LOS PONGAS" };
