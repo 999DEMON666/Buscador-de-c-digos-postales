@@ -104,6 +104,99 @@
             min-height: 50px;
             font-weight: bold;
             word-wrap: break-word;
+            
+            #torch-button {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            z-index: 10;
+        }
+        
+        #torch-button.torch-on {
+            background-color: #00ff18;
+            color: black;
+            box-shadow: 0 0 15px #00ff18;
+        }
+
+        .manual-search {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        
+        #manualCodeInput {
+            width: 70%;
+            padding: 12px;
+            font-size: 1.5em;
+            text-align: center;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            /* Evitar que aparezcan las flechas en el input de tipo número */
+            -moz-appearance: textfield;
+        }
+        #manualCodeInput::-webkit-outer-spin-button,
+        #manualCodeInput::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .manual-search button {
+            background-color: #00ff18;
+            color: black;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 15px;
+        }
+        
+        .manual-search button:active {
+            transform: scale(0.95);
+        }
+
+        h1 {
+            color: #00ff18;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #ccc;
+            font-size: 1em;
+            margin-top: 0;
+        }
+        
+        #mensajes {
+            margin-top: 15px; 
+            font-size: 1em; 
+            color: #f0f0f0; 
+            min-height: 20px; 
+            font-weight: bold;
+        }
+
+        #resultado { 
+            margin-top: 10px; 
+            font-size: 1.7em; 
+            color: #00ff18; 
+            min-height: 50px;
+            font-weight: bold;
+            word-wrap: break-word;
+       
         }
     </style>
 </head>
@@ -166,124 +259,145 @@
       'PARANA': ['2820', '2821', '2822', '2823', '2824', '2825', '2826', '2827', '2828', '2829', '2830', '2831', '2832', '2833', '2834', '2835', '2836', '2837', '2838', '2839', '2840', '2841', '2842', '2843', '2844', '2845', '2846', '2847', '2848', '2849', '2850', '2851', '2852', '2853', '2854', '2855', '2856', '2857', '2858', '2859', '2860', '2861', '2862', '2863', '2864', '2865', '2866', '2867', '2868', '2869', '2870', '2871', '2872', '2873', '2874', '2875', '2876', '2877', '2878', '2879', '2880', '2881', '2882', '2883', '2884', '2885', '2886', '2887', '2888', '2889', '2890', '2891', '2892', '2893', '2894', '2895', '2896', '2897', '2898', '2899', '3100', '3101', '3102', '3103', '3104', '3105', '3106', '3107', '3108', '3109', '3110', '3111', '3112', '3113', '3114', '3115', '3116', '3117', '3118', '3119', '3120', '3121', '3122', '3123', '3124', '3125', '3126', '3127', '3128', '3129', '3130', '3131', '3132', '3133', '3134', '3135', '3136', '3137', '3138', '3139', '3140', '3141', '3142', '3143', '3144', '3145', '3146', '3147', '3148', '3149', '3150', '3151', '3152', '3153', '3154', '3155', '3156', '3157', '3158', '3159', '3160', '3161', '3162', '3163', '3164', '3165', '3166', '3167', '3168', '3169', '3170', '3171', '3172', '3173', '3174', '3175', '3176', '3177', '3178', '3179', '3180', '3181', '3182', '3183', '3184', '3185', '3186', '3187', '3188', '3189', '3190', '3191', '3192', '3193', '3200', '3201', '3202', '3203', '3204', '3205', '3206', '3207', '3208', '3209', '3210', '3211', '3212', '3213', '3214', '3215', '3216', '3217', '3218', '3219', '3228', '3229', '3240', '3241', '3242', '3243', '3244', '3245', '3246', '3247', '3248', '3249', '3250', '3251', '3252', '3253', '3254', '3255', '3256', '3257', '3258', '3259', '3260', '3261', '3262', '3263', '3264', '3265', '3266', '3267', '3268', '3269', '3270', '3271', '3272', '3273', '3274', '3275', '3276', '3277', '3278', '3279', '3280', '3281', '3282', '3283', '3284', '3285', '3286', '3287', '3288', '3289', '3290', '3291', '3292', '3293', '3294', '3295', '3296', '3297', '3298', '3299']
         // ... (resto de la base de datos)
     };
-    
-    /**
-     * Función para el botón del buscador manual.
-     */
-    function buscarManualmente() {
-        const manualInput = document.getElementById('manualCodeInput');
-        // Usamos .trim() para limpiar espacios en blanco
-        const codigo = manualInput.value.trim();
-        realizarBusquedaYMostrarResultado(codigo);
-    }
+     // --- LÓGICA DE BÚSQUEDA (sin cambios) ---
+    function buscarManualmente() {
+        const manualInput = document.getElementById('manualCodeInput');
+        const codigo = manualInput.value.trim();
+        realizarBusquedaYMostrarResultado(codigo);
+    }
+    
+    function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = ''; 
 
-    /**
-     * Función central que busca un código y muestra el resultado.
-     * Es llamada tanto por el escáner QR como por el buscador manual.
-     * @param {string} codigo - El código postal a buscar.
-     */
-    function realizarBusquedaYMostrarResultado(codigo) {
-        const elementoResultado = document.getElementById('resultado');
-        const elementoMensajes = document.getElementById('mensajes');
+        if (!codigo) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
+            return;
+        } 
 
-        // Limpiar mensajes y resultados anteriores
-        elementoResultado.innerHTML = '';
-        elementoMensajes.innerHTML = '';
+        let lugarEncontrado = null;
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break;
+            }
+        } 
 
-        if (!codigo) {
-            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
-            return;
-        }
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        }
+    } 
 
-        let lugarEncontrado = null;
-        // Bucle para encontrar a qué lugar pertenece el código
-        for (const lugar in lugaresConCodigos) {
-            if (lugaresConCodigos[lugar].includes(codigo)) {
-                lugarEncontrado = lugar;
-                break; // Si lo encontramos, detenemos la búsqueda
-            }
-        }
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|');
+            return partes[partes.length - 1].trim();
+        }
+        return textoQR.trim();
+    }
+    
+    // --- NUEVA LÓGICA DEL ESCÁNER QR CON LINTERNA Y CÁMARA TRASERA --- 
 
-        // Mostrar el resultado
-        if (lugarEncontrado) {
-            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
-            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
-        } else {
-            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
-        }
-    }
+    // Variable global para el objeto del escáner
+    let html5QrCode;
+    let torchOn = false; // Estado de la linterna 
 
-    /**
-     * Extrae el código postal de diferentes formatos de texto de QR.
-     * @param {string} textoQR - El contenido decodificado del QR.
-     * @returns {string|null} El código postal extraído o null si no se encuentra.
-     */
-    function obtenerCodigoDesdeQR(textoQR) {
-        if (!textoQR) return null;
+    function onScanSuccess(decodedText, decodedResult) {
+        const codigoPostal = obtenerCodigoDesdeQR(decodedText);
+        realizarBusquedaYMostrarResultado(codigoPostal);
+    } 
 
-        // 1. Intenta procesar como JSON (tu lógica original)
-        try {
-            const datosQR = JSON.parse(textoQR);
-            if (datosQR.carrier_data && datosQR.carrier_data.includes('|')) {
-                const partes = datosQR.carrier_data.split('|');
-                if (partes.length > 2) {
-                    return partes[2].trim();
-                }
-            }
-        } catch (e) {
-            // No es un JSON, continuamos con los otros métodos.
-        }
+    function onScanFailure(error) {
+        // No mostramos errores constantes para una mejor experiencia de usuario.
+        // console.warn(`Code scan error = ${error}`);
+    } 
 
-        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
-        if (textoQR.includes('|')) {
-            const partes = textoQR.split('|');
-            // Devuelve el último elemento, que suele ser el código postal.
-            return partes[partes.length - 1].trim();
-        }
+    // Función que se ejecuta cuando la página se ha cargado
+    document.addEventListener('DOMContentLoaded', () => {
+        const qrReaderElement = document.getElementById('qr-reader');
+        const mensajesElement = document.getElementById('mensajes'); 
 
-        // 3. Si nada de lo anterior funciona, devuelve el texto completo.
-        return textoQR.trim();
-    }
+        if (typeof Html5Qrcode === "undefined") {
+            mensajesElement.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
+            return;
+        } 
 
+        // Creamos la instancia principal de Html5Qrcode
+        html5QrCode = new Html5Qrcode("qr-reader"); 
 
-    // --- LÓGICA DEL ESCÁNER QR ---
+        const config = { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 } 
+        }; 
 
-    function onScanSuccess(decodedText, decodedResult) {
-        // Usamos la nueva función unificada para extraer el código
-        const codigoPostal = obtenerCodigoDesdeQR(decodedText);
-        
-        // Llamamos a la función de búsqueda con el código extraído
-        realizarBusquedaYMostrarResultado(codigoPostal);
-        
-        // Opcional: Pausar el escáner después de una lectura exitosa
-        // html5QrcodeScanner.pause(true);
-    }
+        // 1. Buscamos las cámaras disponibles
+        Html5Qrcode.getCameras().then(cameras => {
+            if (cameras && cameras.length) {
+                // 2. Buscamos específicamente la cámara trasera ('environment')
+                let cameraId = cameras.find(camera => camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('trasera'));
+                
+                // Si no encontramos una con 'back' o 'trasera', usamos la última de la lista, que suele ser la principal trasera.
+                if (!cameraId && cameras.length > 0) {
+                    cameraId = cameras[cameras.length - 1].id;
+                } else {
+                    cameraId = cameraId.id;
+                } 
 
-    function onScanFailure(error) {
-        // No hacemos nada en caso de fallo para no molestar al usuario.
-        // console.warn(`Scan failure: ${error}`);
-    }
+                // 3. Iniciamos el escáner con la cámara trasera seleccionada
+                html5QrCode.start(
+                    cameraId, 
+                    config, 
+                    onScanSuccess, 
+                    onScanFailure
+                ).then(() => {
+                    // Una vez que la cámara está iniciada, verificamos si soporta linterna.
+                    setTimeout(verificarSoporteLinterna, 500); // Pequeña espera para asegurar que el stream de video esté listo.
+                }).catch(err => {
+                    console.error("Error al iniciar la cámara: ", err);
+                    mensajesElement.innerText = "No se pudo iniciar la cámara. Revisa los permisos.";
+                }); 
 
-    // Variable global para el escáner
-    let html5QrcodeScanner;
+            } else {
+                console.error("No se encontraron cámaras.");
+                mensajesElement.innerText = "No se encontró ninguna cámara en este dispositivo.";
+            }
+        }).catch(err => {
+            console.error("Error al obtener las cámaras: ", err);
+            mensajesElement.innerText = "No se pudo acceder a las cámaras. Otorga los permisos necesarios.";
+        });
+    }); 
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const elementoMensajes = document.getElementById('mensajes');
-        
-        if (typeof Html5QrcodeScanner !== "undefined") {
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "qr-reader", 
-                { 
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
-                false // Verbose
-            );
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-        } else {
-             elementoMensajes.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
-        }
-    });
-</script>
+    function verificarSoporteLinterna() {
+        const track = html5QrCode.getRunningTrackCapabilities();
+        const soportaLinterna = !!track.torch; 
+
+        if (soportaLinterna) {
+            const qrReaderElement = document.getElementById('qr-reader');
+            
+            // Creamos el botón de la linterna
+            const torchButton = document.createElement('button');
+            torchButton.id = 'torch-button';
+            torchButton.innerHTML = '🔦 Linterna';
+            
+            // Añadimos el botón dentro del div del lector QR
+            qrReaderElement.appendChild(torchButton); 
+
+            // Añadimos el evento para encender/apagar la linterna
+            torchButton.addEventListener('click', () => {
+                torchOn = !torchOn;
+                html5QrCode.applyVideoConstraints({
+                    advanced: [{ torch: torchOn }]
+                });
+                torchButton.classList.toggle('torch-on', torchOn);
+            });
+        }
+    }
+    </script>
 </body>
 </html>
