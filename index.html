@@ -486,83 +486,6 @@
         return textoQR.trim();
     }
     
-        // --- LÓGICA DE BÚSQUEDA (sin cambios) ---
-    function buscarManualmente() {
-        const manualInput = document.getElementById('manualCodeInput');
-        const codigo = manualInput.value.trim();
-        realizarBusquedaYMostrarResultado(codigo);
-    }
-    
-    function realizarBusquedaYMostrarResultado(codigo) {
-        const elementoResultado = document.getElementById('resultado');
-        const elementoMensajes = document.getElementById('mensajes');
-        elementoResultado.innerHTML = '';
-        elementoMensajes.innerHTML = '';
-
-        if (!codigo) {
-            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código.';
-            return;
-        }
-
-        if (isNaN(codigo)) {
-            const sectorEncontrado = Object.keys(lugaresConCodigos).find(sector => sector.toLowerCase() === codigo.toLowerCase());
-            if (sectorEncontrado) {
-                 elementoMensajes.innerText = `Sector encontrado:`;
-                 elementoResultado.innerHTML = `<b>${sectorEncontrado}</b><br><small>Códigos: ${lugaresConCodigos[sectorEncontrado].join(', ')}</small>`;
-            } else {
-                 elementoMensajes.innerText = `El sector "${codigo}" no fue encontrado.`;
-            }
-            return;
-        }
-
-        let lugarEncontrado = null;
-        for (const lugar in lugaresConCodigos) {
-            if (lugaresConCodigos[lugar].includes(codigo)) {
-                lugarEncontrado = lugar;
-                break;
-            }
-        }
-
-        if (lugarEncontrado) {
-            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
-            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
-        } else {
-            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
-        }
-    }
-
-    // --- ¡FUNCIÓN ACTUALIZADA PARA LEER EL NUEVO FORMATO DE QR! ---
-    function obtenerCodigoDesdeQR(textoQR) {
-        if (!textoQR) return null;
-
-        // 1. Intenta procesar como JSON (nuevo formato)
-        try {
-            const datosQR = JSON.parse(textoQR);
-            // Verifica si existe la clave "carrier_data"
-            if (datosQR && typeof datosQR.carrier_data === 'string') {
-                const partes = datosQR.carrier_data.split('|');
-                // El código postal es el tercer elemento (índice 2)
-                if (partes.length > 2 && partes[2]) {
-                    return partes[2].trim();
-                }
-            }
-        } catch (error) {
-            // Si no es JSON, no hace nada y continúa con los métodos de abajo.
-        }
-
-        // 2. Si no es JSON, intenta procesar como texto con barras (formato antiguo)
-        if (textoQR.includes('|')) {
-            const partes = textoQR.split('|').filter(p => p); // Filtra partes vacías
-            if (partes.length > 0) {
-                // Devuelve el último elemento no vacío
-                return partes[partes.length - 1].trim();
-            }
-        }
-
-        // 3. Si nada de lo anterior funciona, devuelve el texto completo.
-        return textoQR.trim();
-    }
-    
     // --- LÓGICA DEL ESCÁNER QR CON LINTERNA Y SONIDO ---
 
     let html5QrCode;
@@ -591,6 +514,7 @@
     function onScanSuccess(decodedText, decodedResult) {
         playBeep(); 
         const codigoPostal = obtenerCodigoDesdeQR(decodedText);
+        // También cambiamos el tipo de input a texto para que la búsqueda manual funcione con nombres
         document.getElementById('manualCodeInput').value = codigoPostal; 
         realizarBusquedaYMostrarResultado(codigoPostal);
     }
@@ -600,6 +524,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // --- Cambiamos el tipo de input a "text" para permitir nombres ---
         const manualInput = document.getElementById('manualCodeInput');
         manualInput.type = 'text'; 
         manualInput.placeholder = 'Código o Nombre';
@@ -673,6 +598,8 @@
             }
         } catch (e) {
             console.error("Error al verificar soporte de linterna: ", e)
+        }
+    }
 </script>
 </body>
 </html>
