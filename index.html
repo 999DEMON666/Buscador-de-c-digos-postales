@@ -210,7 +210,11 @@
 function buscarManualmente() {
         const manualInput = document.getElementById('manualCodeInput');
         const codigo = manualInput.value.trim();
+        
         realizarBusquedaYMostrarResultado(codigo);
+        
+        // Limpia el campo de texto después de la búsqueda
+        manualInput.value = '';
     }
     
     function realizarBusquedaYMostrarResultado(codigo) {
@@ -303,15 +307,8 @@ function buscarManualmente() {
 
     function onScanFailure(error) {}
 
-    // --- ¡AQUÍ ESTÁ LA LÓGICA DE CÁMARA MEJORADA! ---
     document.addEventListener('DOMContentLoaded', () => {
         const mensajesElement = document.getElementById('mensajes');
-
-        if (typeof Html5Qrcode === "undefined") {
-            mensajesElement.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
-            return;
-        }
-
         html5QrCode = new Html5Qrcode("qr-reader");
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -321,7 +318,6 @@ function buscarManualmente() {
                 return;
             }
 
-            // 1. Filtra para obtener solo las cámaras traseras.
             const rearCameras = cameras.filter(camera => 
                 camera.label.toLowerCase().includes('back') || 
                 camera.label.toLowerCase().includes('trasera')
@@ -334,20 +330,16 @@ function buscarManualmente() {
 
             let selectedCameraId;
 
-            // 2. Si hay más de una cámara trasera, intenta encontrar la que NO es "gran angular".
             if (rearCameras.length > 1) {
                 const normalCamera = rearCameras.find(camera => 
                     !camera.label.toLowerCase().includes('wide') && 
                     !camera.label.toLowerCase().includes('gran angular')
                 );
-                // Usa la cámara "normal" si la encuentra, si no, usa la primera de la lista.
                 selectedCameraId = normalCamera ? normalCamera.id : rearCameras[0].id;
             } else {
-                // Si solo hay una cámara trasera, úsala.
                 selectedCameraId = rearCameras[0].id;
             }
 
-            // 3. Inicia el escáner con la cámara seleccionada.
             html5QrCode.start(
                 selectedCameraId, 
                 config, 
@@ -390,6 +382,6 @@ function buscarManualmente() {
             console.error("Error al verificar soporte de linterna: ", e)
         }
     }
-</script>
+    </script>
 </body>
 </html>
