@@ -372,6 +372,173 @@ function buscarManualmente() {
             if (soportaLinterna) {
                 const qrReaderElement = document.getElementById('qr-reader');
                 const torchButton = document.createElement('button');
+function buscarManualmente() {
+        const manualInput = document.getElementById('manualCodeInput');
+        const codigo = manualInput.value.trim();
+        realizarBusquedaYMostrarResultado(codigo);
+    }
+    
+    function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = '';
+
+        if (!codigo || codigo.includes('{')) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
+            return;
+        }
+
+        if (isNaN(codigo)) {
+            const sectorEncontrado = Object.keys(lugaresConCodigos).find(sector => sector.toLowerCase() === codigo.toLowerCase());
+            if (sectorEncontrado) {
+                 elementoMensajes.innerText = `Sector encontrado:`;
+                 elementoResultado.innerHTML = `<b>${sectorEncontrado}</b><br><small>Códigos: ${lugaresConCodigos[sectorEncontrado].join(', ')}</small>`;
+            } else {
+                 elementoMensajes.innerText = `El sector "${codigo}" no fue encontrado.`;
+            }
+            return;
+        }
+
+        let lugarEncontrado = null;
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break;
+            }
+        }
+
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        }
+    }
+
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR && typeof datosQR.carrier_data === 'string') {
+                const partes = datosQR.carrier_data.split('|');
+                if (partes.length > 2 && partes[2]) {
+                    return partes[2].trim();
+                }
+            }
+        } catch (error) {}
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|').filter(p => p);
+            if (partes.length > 0) {
+                return partes[partes.length - 1].trim();
+            }
+        }
+        return textoQR.trim();
+    }
+    
+    let html5QrCode;
+    let torchOn = false;
+    let audioContext;
+
+    function playBeep() {
+        try {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(750, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.15);
+        } catch (e) {
+            console.error("No se pudo reproducir el sonido.", e);
+        }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        playBeep(); 
+        const codigoPostal = obtenerCodigoDesdeQR(decodedText);
+        document.getElementById('manualCodeInput').value = codigoPostal; 
+        realizarBusquedaYMostrarResultado(codigoPostal);
+    }
+
+    function onScanFailure(error) {}
+
+    // --- ¡AQUÍ ESTÁ LA LÓGICA DE CÁMARA MEJORADA! ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const mensajesElement = document.getElementById('mensajes');
+
+        if (typeof Html5Qrcode === "undefined") {
+            mensajesElement.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
+            return;
+        }
+
+        html5QrCode = new Html5Qrcode("qr-reader");
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        Html5Qrcode.getCameras().then(cameras => {
+            if (!cameras || cameras.length === 0) {
+                mensajesElement.innerText = "No se encontró ninguna cámara en este dispositivo.";
+                return;
+            }
+
+            // 1. Filtra para obtener solo las cámaras traseras.
+            const rearCameras = cameras.filter(camera => 
+                camera.label.toLowerCase().includes('back') || 
+                camera.label.toLowerCase().includes('trasera')
+            );
+
+            if (rearCameras.length === 0) {
+                mensajesElement.innerText = "No se encontró una cámara trasera.";
+                return;
+            }
+
+            let selectedCameraId;
+
+            // 2. Si hay más de una cámara trasera, intenta encontrar la que NO es "gran angular".
+            if (rearCameras.length > 1) {
+                const normalCamera = rearCameras.find(camera => 
+                    !camera.label.toLowerCase().includes('wide') && 
+                    !camera.label.toLowerCase().includes('gran angular')
+                );
+                // Usa la cámara "normal" si la encuentra, si no, usa la primera de la lista.
+                selectedCameraId = normalCamera ? normalCamera.id : rearCameras[0].id;
+            } else {
+                // Si solo hay una cámara trasera, úsala.
+                selectedCameraId = rearCameras[0].id;
+            }
+
+            // 3. Inicia el escáner con la cámara seleccionada.
+            html5QrCode.start(
+                selectedCameraId, 
+                config, 
+                onScanSuccess, 
+                onScanFailure
+            ).then(() => {
+                setTimeout(verificarSoporteLinterna, 500);
+            }).catch(err => {
+                console.error("Error al iniciar la cámara: ", err);
+                mensajesElement.innerText = "No se pudo iniciar la cámara. Revisa los permisos.";
+            });
+
+        }).catch(err => {
+            console.error("Error al obtener las cámaras: ", err);
+            mensajesElement.innerText = "No se pudo acceder a las cámaras. Otorga los permisos necesarios.";
+        });
+    });
+
+    function verificarSoporteLinterna() {
+        try {
+            const track = html5QrCode.getRunningTrackCapabilities();
+            const soportaLinterna = !!track.torch;
+
+            if (soportaLinterna) {
+                const qrReaderElement = document.getElementById('qr-reader');
+                const torchButton = document.createElement('button');
                 torchButton.id = 'torch-button';
                 torchButton.innerHTML = '🔦 Linterna';
                 qrReaderElement.appendChild(torchButton);
@@ -388,6 +555,6 @@ function buscarManualmente() {
             console.error("Error al verificar soporte de linterna: ", e)
         }
     }
-    </script>
+</script>
 </body>
 </html>
