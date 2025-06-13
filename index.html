@@ -346,90 +346,281 @@
         const codigoPostal = obtenerCodigoDesdeQR(decodedText);
         // También cambiamos el tipo de input a texto para que la búsqueda manual funcione con nombres
         document.getElementById('manualCodeInput').value = codigoPostal; 
-        realizarBusquedaYMostrarResultado(codigoPostal);
-    }
-
-    function onScanFailure(error) {
-        // No hacemos nada
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- Cambiamos el tipo de input a "text" para permitir nombres ---
+<script>
+    // TU BASE DE DATOS COMPLETA (se mantiene igual)
+    const lugaresConCodigos = { "aquí están todos los códigos postales NO HACE FALTA QUE LOS PONGAS" };
+    
+    /**
+     * Función para el botón del buscador manual.
+     */
+    function buscarManualmente() {
         const manualInput = document.getElementById('manualCodeInput');
-        manualInput.type = 'text'; 
-        manualInput.placeholder = 'Código o Nombre';
+        // Usamos .trim() para limpiar espacios en blanco
+        const codigo = manualInput.value.trim();
+        realizarBusquedaYMostrarResultado(codigo);
+    }
 
-        const qrReaderElement = document.getElementById('qr-reader');
-        const mensajesElement = document.getElementById('mensajes');
+    /**
+     * Función central que busca un código y muestra el resultado.
+     * Es llamada tanto por el escáner QR como por el buscador manual.
+     * @param {string} codigo - El código postal a buscar.
+     */
+    function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
 
-        if (typeof Html5Qrcode === "undefined") {
-            mensajesElement.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
+        // Limpiar mensajes y resultados anteriores
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = '';
+
+        if (!codigo) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
             return;
         }
 
-        html5QrCode = new Html5Qrcode("qr-reader");
-
-        const config = { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 } 
-        };
-
-        Html5Qrcode.getCameras().then(cameras => {
-            if (cameras && cameras.length) {
-                let cameraId = cameras.find(camera => camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('trasera'));
-                
-                if (!cameraId && cameras.length > 0) {
-                    cameraId = cameras[cameras.length - 1].id;
-                } else {
-                    cameraId = cameraId.id;
-                }
-
-                html5QrCode.start(
-                    cameraId, 
-                    config, 
-                    onScanSuccess, 
-                    onScanFailure
-                ).then(() => {
-                    setTimeout(verificarSoporteLinterna, 500);
-                }).catch(err => {
-                    console.error("Error al iniciar la cámara: ", err);
-                    mensajesElement.innerText = "No se pudo iniciar la cámara. Revisa los permisos.";
-                });
-
-            } else {
-                console.error("No se encontraron cámaras.");
-                mensajesElement.innerText = "No se encontró ninguna cámara en este dispositivo.";
+        let lugarEncontrado = null;
+        // Bucle para encontrar a qué lugar pertenece el código
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break; // Si lo encontramos, detenemos la búsqueda
             }
-        }).catch(err => {
-            console.error("Error al obtener las cámaras: ", err);
-            mensajesElement.innerText = "No se pudo acceder a las cámaras. Otorga los permisos necesarios.";
-        });
-    });
+        }
 
-    function verificarSoporteLinterna() {
-        try {
-            const track = html5QrCode.getRunningTrackCapabilities();
-            const soportaLinterna = !!track.torch;
-
-            if (soportaLinterna) {
-                const qrReaderElement = document.getElementById('qr-reader');
-                const torchButton = document.createElement('button');
-                torchButton.id = 'torch-button';
-                torchButton.innerHTML = '🔦 Linterna';
-                qrReaderElement.appendChild(torchButton);
-
-                torchButton.addEventListener('click', () => {
-                    torchOn = !torchOn;
-                    html5QrCode.applyVideoConstraints({
-                        advanced: [{ torch: torchOn }]
-                    });
-                    torchButton.classList.toggle('torch-on', torchOn);
-                });
-            }
-        } catch (e) {
-            console.error("Error al verificar soporte de linterna: ", e)
+        // Mostrar el resultado
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
         }
     }
+
+    /**
+     * Extrae el código postal de diferentes formatos de texto de QR.
+     * @param {string} textoQR - El contenido decodificado del QR.
+     * @returns {string|null} El código postal extraído o null si no se encuentra.
+     */
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+
+        // 1. Intenta procesar como JSON (tu lógica original)
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR.carrier_data && datosQR.carrier_data.includes('|')) {
+                const partes = datosQR.carrier_data.split('|');
+                if (partes.length > 2) {
+                    return partes[2].trim();
+                }
+            }
+        } catch (e) {
+            // No es un JSON, continuamos con los otros métodos.
+        }
+
+        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|');
+            // Devuelve el último elemento, que suele ser el código postal.
+            return partes[partes.length - 1].trim();
+        }
+<script>
+    // TU BASE DE DATOS COMPLETA (se mantiene igual)
+    const lugaresConCodigos = { "aquí están todos los códigos postales NO HACE FALTA QUE LOS PONGAS" };
+    
+    /**
+     * Función para el botón del buscador manual.
+     */
+    function buscarManualmente() {
+        const manualInput = document.getElementById('manualCodeInput');
+        // Usamos .trim() para limpiar espacios en blanco
+        const codigo = manualInput.value.trim();
+        realizarBusquedaYMostrarResultado(codigo);
+    }
+
+    /**
+     * Función central que busca un código y muestra el resultado.
+     * Es llamada tanto por el escáner QR como por el buscador manual.
+     * @param {string} codigo - El código postal a buscar.
+     */
+    function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
+
+        // Limpiar mensajes y resultados anteriores
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = '';
+
+        if (!codigo) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
+            return;
+        }
+
+        let lugarEncontrado = null;
+        // Bucle para encontrar a qué lugar pertenece el código
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break; // Si lo encontramos, detenemos la búsqueda
+            }
+        }
+
+        // Mostrar el resultado
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        }
+    }
+
+    /**
+     * Extrae el código postal de diferentes formatos de texto de QR.
+     * @param {string} textoQR - El contenido decodificado del QR.
+     * @returns {string|null} El código postal extraído o null si no se encuentra.
+     */
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+
+        // 1. Intenta procesar como JSON (tu lógica original)
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR.carrier_data && datosQR.carrier_data.includes('|')) {
+                const partes = datosQR.carrier_data.split('|');
+                if (partes.length > 2) {
+                    return partes[2].trim();
+                }
+            }
+        } catch (e) {
+            // No es un JSON, continuamos con los otros métodos.
+        }
+
+        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|');
+            // Devuelve el último elemento, que suele ser el código postal.
+            return partes[partes.length - 1].trim();
+        }
+<script>
+    // TU BASE DE DATOS COMPLETA (se mantiene igual)
+    const lugaresConCodigos = { "aquí están todos los códigos postales NO HACE FALTA QUE LOS PONGAS" };
+    
+    /**
+     * Función para el botón del buscador manual.
+     */
+    function buscarManualmente() {
+        const manualInput = document.getElementById('manualCodeInput');
+        // Usamos .trim() para limpiar espacios en blanco
+        const codigo = manualInput.value.trim();
+        realizarBusquedaYMostrarResultado(codigo);
+    }
+
+    /**
+     * Función central que busca un código y muestra el resultado.
+     * Es llamada tanto por el escáner QR como por el buscador manual.
+     * @param {string} codigo - El código postal a buscar.
+     */
+    function realizarBusquedaYMostrarResultado(codigo) {
+        const elementoResultado = document.getElementById('resultado');
+        const elementoMensajes = document.getElementById('mensajes');
+
+        // Limpiar mensajes y resultados anteriores
+        elementoResultado.innerHTML = '';
+        elementoMensajes.innerHTML = '';
+
+        if (!codigo) {
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
+            return;
+        }
+
+        let lugarEncontrado = null;
+        // Bucle para encontrar a qué lugar pertenece el código
+        for (const lugar in lugaresConCodigos) {
+            if (lugaresConCodigos[lugar].includes(codigo)) {
+                lugarEncontrado = lugar;
+                break; // Si lo encontramos, detenemos la búsqueda
+            }
+        }
+
+        // Mostrar el resultado
+        if (lugarEncontrado) {
+            elementoMensajes.innerText = `Código ${codigo} encontrado:`;
+            elementoResultado.innerHTML = ` <b>${lugarEncontrado}</b>`;
+        } else {
+            elementoMensajes.innerText = `El código ${codigo} no fue encontrado.`;
+        }
+    }
+
+    /**
+     * Extrae el código postal de diferentes formatos de texto de QR.
+     * @param {string} textoQR - El contenido decodificado del QR.
+     * @returns {string|null} El código postal extraído o null si no se encuentra.
+     */
+    function obtenerCodigoDesdeQR(textoQR) {
+        if (!textoQR) return null;
+
+        // 1. Intenta procesar como JSON (tu lógica original)
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR.carrier_data && datosQR.carrier_data.includes('|')) {
+                const partes = datosQR.carrier_data.split('|');
+                if (partes.length > 2) {
+                    return partes[2].trim();
+                }
+            }
+        } catch (e) {
+            // No es un JSON, continuamos con los otros métodos.
+        }
+
+        // 2. Intenta procesar como texto con barras (ej: "data|data|CODIGO")
+        if (textoQR.includes('|')) {
+            const partes = textoQR.split('|');
+            // Devuelve el último elemento, que suele ser el código postal.
+            return partes[partes.length - 1].trim();
+        }
+
+        // 3. Si nada de lo anterior funciona, devuelve el texto completo.
+        return textoQR.trim();
+    }
+
+
+    // --- LÓGICA DEL ESCÁNER QR ---
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Usamos la nueva función unificada para extraer el código
+        const codigoPostal = obtenerCodigoDesdeQR(decodedText);
+        
+        // Llamamos a la función de búsqueda con el código extraído
+        realizarBusquedaYMostrarResultado(codigoPostal);
+        
+        // Opcional: Pausar el escáner después de una lectura exitosa
+        // html5QrcodeScanner.pause(true);
+    }
+
+    function onScanFailure(error) {
+        // No hacemos nada en caso de fallo para no molestar al usuario.
+        // console.warn(`Scan failure: ${error}`);
+    }
+
+    // Variable global para el escáner
+    let html5QrcodeScanner;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const elementoMensajes = document.getElementById('mensajes');
+        
+        if (typeof Html5QrcodeScanner !== "undefined") {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader", 
+                { 
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                false // Verbose
+            );
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        } else {
+             elementoMensajes.innerText = "Error: No se pudo cargar la biblioteca del escáner.";
+        }
+    });
 </script>
 </body>
 </html>
