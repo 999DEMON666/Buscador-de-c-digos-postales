@@ -13,11 +13,13 @@
             background-color: #0f0f0f; 
             color: #e0e0e0;
             display: flex; 
+            flex-direction: column; /* Para poner el footer abajo */
             justify-content: center; 
-            align-items: flex-start; /* Alineamos arriba para mejor scrolling en móvil */
+            align-items: center;
             min-height: 100vh; 
             margin: 0; 
             padding: 20px 15px; 
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container { 
@@ -34,78 +36,14 @@
         #qr-reader {
             width: 100%;
             max-width: 300px; 
-            margin: 20px auto; 
+            margin: 0 auto;
             border: 2px solid #333; 
             border-radius: 8px;
             overflow: hidden;
+            position: relative;
         }
 
-        /* --- NUEVOS ESTILOS PARA EL BUSCADOR MANUAL --- */
-        .manual-search {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-        }
-        
-        #manualCodeInput {
-            width: 70%;
-            padding: 12px;
-            font-size: 1.5em;
-            text-align: center;
-            border: 2px solid #444;
-            border-radius: 8px;
-            background-color: #333;
-            color: #fff;
-        }
-
-        .manual-search button {
-            background-color: #00ff18;
-            color: black;
-            border: none;
-            padding: 15px 25px;
-            font-size: 1.1em;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 15px;
-        }
-        
-        .manual-search button:active {
-            transform: scale(0.95);
-        }
-        /* --- FIN DE NUEVOS ESTILOS --- */
-
-
-        h1 {
-            color: #00ff18;
-            font-size: 1.8em;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: #00ff42;
-            font-size: 1em;
-            margin-top: 0;
-        }
-        
-        #mensajes {
-            margin-top: 15px; 
-            font-size: 1em; 
-            color: #f0f0f0; 
-            min-height: 20px; 
-            font-weight: bold;
-        }
-
-        #resultado { 
-            margin-top: 10px; 
-            font-size: 1.7em; 
-            color: #00ff18; 
-            min-height: 50px;
-            font-weight: bold;
-            word-wrap: break-word;
-            
-            #torch-button {
+        #torch-button {
             position: absolute;
             bottom: 15px;
             left: 50%;
@@ -143,7 +81,6 @@
             border-radius: 8px;
             background-color: #333;
             color: #fff;
-            /* Evitar que aparezcan las flechas en el input de tipo número */
             -moz-appearance: textfield;
         }
         #manualCodeInput::-webkit-outer-spin-button,
@@ -176,7 +113,7 @@
         }
 
         p {
-            color: #00ff18;
+            color: #ccc;
             font-size: 1em;
             margin-top: 0;
         }
@@ -196,26 +133,37 @@
             min-height: 50px;
             font-weight: bold;
             word-wrap: break-word;
-       
+        }
+        
+        /* Estilo para el pie de página */
+        footer {
+            margin-top: 30px;
+            color: #00ff18;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Buscador de Sector</h1>
+        
         <p>Apunta la cámara al código QR.</p>
-        <div id="qr-reader"></div>
+        <div id="qr-reader">
+            </div>
 
         <div class="manual-search">
             <p>O ingresa el código manualmente:</p>
-            <input type="number" id="manualCodeInput" placeholder="®Gonzalez Agustin">
+            <input type="text" id="manualCodeInput" placeholder="Código o Nombre">
             <button onclick="buscarManualmente()">Buscar</button>
         </div>
 
         <div id="mensajes"></div>
         <h2 id="resultado"></h2>
-        <p>Propiedad de ®Gonzalez Agustin<p>
     </div>
+
+    <footer>
+        <p>Propiedad de ®Gonzalez Agustin</p>
+    </footer>
     <script>
     // TU BASE DE DATOS COMPLETA (se mantiene igual)
     const lugaresConCodigos = {
@@ -259,8 +207,7 @@
       'PARANA': ['2820', '2821', '2822', '2823', '2824', '2825', '2826', '2827', '2828', '2829', '2830', '2831', '2832', '2833', '2834', '2835', '2836', '2837', '2838', '2839', '2840', '2841', '2842', '2843', '2844', '2845', '2846', '2847', '2848', '2849', '2850', '2851', '2852', '2853', '2854', '2855', '2856', '2857', '2858', '2859', '2860', '2861', '2862', '2863', '2864', '2865', '2866', '2867', '2868', '2869', '2870', '2871', '2872', '2873', '2874', '2875', '2876', '2877', '2878', '2879', '2880', '2881', '2882', '2883', '2884', '2885', '2886', '2887', '2888', '2889', '2890', '2891', '2892', '2893', '2894', '2895', '2896', '2897', '2898', '2899', '3100', '3101', '3102', '3103', '3104', '3105', '3106', '3107', '3108', '3109', '3110', '3111', '3112', '3113', '3114', '3115', '3116', '3117', '3118', '3119', '3120', '3121', '3122', '3123', '3124', '3125', '3126', '3127', '3128', '3129', '3130', '3131', '3132', '3133', '3134', '3135', '3136', '3137', '3138', '3139', '3140', '3141', '3142', '3143', '3144', '3145', '3146', '3147', '3148', '3149', '3150', '3151', '3152', '3153', '3154', '3155', '3156', '3157', '3158', '3159', '3160', '3161', '3162', '3163', '3164', '3165', '3166', '3167', '3168', '3169', '3170', '3171', '3172', '3173', '3174', '3175', '3176', '3177', '3178', '3179', '3180', '3181', '3182', '3183', '3184', '3185', '3186', '3187', '3188', '3189', '3190', '3191', '3192', '3193', '3200', '3201', '3202', '3203', '3204', '3205', '3206', '3207', '3208', '3209', '3210', '3211', '3212', '3213', '3214', '3215', '3216', '3217', '3218', '3219', '3228', '3229', '3240', '3241', '3242', '3243', '3244', '3245', '3246', '3247', '3248', '3249', '3250', '3251', '3252', '3253', '3254', '3255', '3256', '3257', '3258', '3259', '3260', '3261', '3262', '3263', '3264', '3265', '3266', '3267', '3268', '3269', '3270', '3271', '3272', '3273', '3274', '3275', '3276', '3277', '3278', '3279', '3280', '3281', '3282', '3283', '3284', '3285', '3286', '3287', '3288', '3289', '3290', '3291', '3292', '3293', '3294', '3295', '3296', '3297', '3298', '3299']
         // ... (resto de la base de datos)
     };
-    // --- LÓGICA DE BÚSQUEDA (sin cambios) ---
-    function buscarManualmente() {
+function buscarManualmente() {
         const manualInput = document.getElementById('manualCodeInput');
         const codigo = manualInput.value.trim();
         realizarBusquedaYMostrarResultado(codigo);
@@ -272,14 +219,12 @@
         elementoResultado.innerHTML = '';
         elementoMensajes.innerHTML = '';
 
-        if (!codigo) {
-            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código.';
+        if (!codigo || codigo.includes('{')) { // Evita buscar con JSON crudo
+            elementoMensajes.innerText = 'Por favor, ingresa o escanea un código válido.';
             return;
         }
 
-        // Búsqueda especial: si el texto no es un número, busca por nombre de sector
         if (isNaN(codigo)) {
-            // Busca si el texto ingresado coincide exactamente con un nombre de sector
             const sectorEncontrado = Object.keys(lugaresConCodigos).find(sector => sector.toLowerCase() === codigo.toLowerCase());
             if (sectorEncontrado) {
                  elementoMensajes.innerText = `Sector encontrado:`;
@@ -289,7 +234,6 @@
             }
             return;
         }
-
 
         let lugarEncontrado = null;
         for (const lugar in lugaresConCodigos) {
@@ -309,15 +253,28 @@
 
     function obtenerCodigoDesdeQR(textoQR) {
         if (!textoQR) return null;
+
+        try {
+            const datosQR = JSON.parse(textoQR);
+            if (datosQR && typeof datosQR.carrier_data === 'string') {
+                const partes = datosQR.carrier_data.split('|');
+                if (partes.length > 2 && partes[2]) {
+                    return partes[2].trim();
+                }
+            }
+        } catch (error) {
+            // No es JSON, continúa
+        }
+
         if (textoQR.includes('|')) {
-            const partes = textoQR.split('|');
-            return partes[partes.length - 1].trim();
+            const partes = textoQR.split('|').filter(p => p);
+            if (partes.length > 0) {
+                return partes[partes.length - 1].trim();
+            }
         }
         return textoQR.trim();
     }
     
-    // --- LÓGICA DEL ESCÁNER QR CON LINTERNA Y SONIDO ---
-
     let html5QrCode;
     let torchOn = false;
     let audioContext;
@@ -341,11 +298,17 @@
         }
     }
 
+    // --- ¡FUNCIÓN CORREGIDA! ---
     function onScanSuccess(decodedText, decodedResult) {
         playBeep(); 
+        
+        // 1. Extraemos el código postal LIMPIO
         const codigoPostal = obtenerCodigoDesdeQR(decodedText);
-        // También cambiamos el tipo de input a texto para que la búsqueda manual funcione con nombres
+        
+        // 2. Ponemos ESE código limpio en el campo de texto
         document.getElementById('manualCodeInput').value = codigoPostal; 
+        
+        // 3. Buscamos usando ESE MISMO código limpio
         realizarBusquedaYMostrarResultado(codigoPostal);
     }
 
@@ -354,11 +317,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // --- Cambiamos el tipo de input a "text" para permitir nombres ---
-        const manualInput = document.getElementById('manualCodeInput');
-        manualInput.type = 'text'; 
-        manualInput.placeholder = 'Código o Nombre';
-
         const qrReaderElement = document.getElementById('qr-reader');
         const mensajesElement = document.getElementById('mensajes');
 
@@ -430,6 +388,6 @@
             console.error("Error al verificar soporte de linterna: ", e)
         }
     }
-</script>
+    </script>
 </body>
 </html>
